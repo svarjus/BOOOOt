@@ -10,59 +10,152 @@
  * scopes 'bot' and 'applications.commands', e.g.
  * https://discord.com/oauth2/authorize?client_id=940762342495518720&scope=bot+applications.commands&permissions=139586816064
  */
-const std::string    BOT_TOKEN    = "MTA1MDM1MTEzMzE1MzA0NjU5OA.GOl40P.m7oQvun6fShzZUjavCK4M7nBRZIjdNirgbGb74";
+const std::string    BOT_TOKEN    = "";
+
+std::vector<std::string> missing_ids;
+std::string missing;
+std::vector<std::string> old_tokens, new_tokens;
+dpp::cluster bot(BOT_TOKEN);
+
+inline std::string old_data, new_data;
+
+
+void CheckSimilarity()
+{   
+    std::string uhhhhhh;
+
+    bool first_time = true;
+
+    while (true) {
+        
+
+
+        missing_ids.clear();
+        missing.clear();
+        new_tokens.clear();
+
+        missing_ids.resize(1);
+        missing.resize(1);
+        new_tokens.resize(1);       
+        old_tokens.clear();
+        old_tokens.resize(1);
+
+        new_data = FetchURLData("http://www.api.rugbug.net/bans");
+
+
+        if (first_time) {
+            old_data = new_data;
+            first_time = false;
+        }
+
+        GetAllData(new_data, new_tokens);
+        GetAllData(old_data, old_tokens);
+
+
+        if (new_tokens.size() > old_tokens.size()) {
+            for (size_t i = 0; i < new_tokens.size(); i++) {
+
+
+                if (new_tokens[i].compare(old_tokens[i])) {
+
+                    missing_ids.push_back(new_tokens[i]);
+
+                    uhhhhhh = std::format("https://steamcommunity.com/profiles/{}\n", new_tokens[i]);
+
+                    missing.insert(missing.end(), uhhhhhh.begin(), uhhhhhh.end());
+
+                    bot.message_create(dpp::message(1050353603270942762, std::format("a new ban added! - {}\n", uhhhhhh)));
+                    break;
+
+                }
+            }
+        }
+        else{
+            for (size_t i = 0; i < old_tokens.size(); i++) {
+
+                if (old_tokens[i].compare(new_tokens[i])) {
+
+                    missing_ids.push_back(old_tokens[i]);
+
+                    uhhhhhh = std::format("https://steamcommunity.com/profiles/{}\n", old_tokens[i]);
+
+                    missing.insert(missing.end(), uhhhhhh.begin(), uhhhhhh.end());
+
+                    bot.message_create(dpp::message(1050353603270942762, std::format("a ban has been removed! - {}\n", uhhhhhh)));
+                    break;
+                }
+            }
+
+
+
+        }
+
+        missing = std::format("\ntotal missing ids: {}\n", missing_ids.size()-1);
+        old_data = new_data;
+
+
+        Sleep(60000);
+    }
+
+}
+
 
 int main()
 {
-    WebPageData = FetchURLData("http://16.170.254.129/bans.json");
-    std::vector<std::string> tokens;
 
-    //WebPageData.erase(WebPageData.begin(), WebPageData.begin() + 1500);
-    GetAllData(tokens);
+    std::thread(CheckSimilarity).detach();
 
-    /* Create bot cluster */
-    dpp::cluster bot(BOT_TOKEN);
 
     /* Output simple log messages to stdout */
     bot.on_log(dpp::utility::cout_logger());
 
-    ///* Handle slash command */
-    //bot.on_slashcommand([tokens](const dpp::slashcommand_t& event) {
+    /* Handle slash command */
+    bot.on_slashcommand([&](const dpp::slashcommand_t& event) {
 
-    //     std::string name = event.command.get_command_name();
-    //     if (name.find("aaaa") != std::string::npos) {
+         std::string name = event.command.get_command_name();
+         if (name == "compare") {
+//             event.reply(std::format("missing ids: {}", missing_ids.size()));
+             if (!missing_ids.empty()) {
 
-    //         if (name.size() == 4) {
+                 event.reply(missing);
 
-    //             event.reply("Enter a number!");
-    //          }
-    //         else {
+             }
+             else {
+                 event.reply("everything is up to date");
+             }
 
-    //             
+             //if (not_similar) {
+             //    event.reply(std::format("https://steamcommunity.com/profiles/{} cannot be found!", missing));
+             //}
+             //else
+             //    event.reply("ok!");
+             
 
-    //           //  event.reply("Pong!");
-    //         }
-    //    }
-    //});
+             //if (!tokens.empty())
+             //    event.reply(tokens[0]);
+             //else
+             //    event.reply("AAAAAAAAAAAAAAAAAAAAAAAAAA");
+        }
+    });
     dpp::commandhandler command_handler(&bot);
     command_handler.add_prefix(".").add_prefix("/");
 
 
 
     /* Register slash command here in on_ready */
-    bot.on_ready([&bot, &command_handler, &tokens](const dpp::ready_t& event) {
+    bot.on_ready([&command_handler](const dpp::ready_t& event) {
 
         command_handler.add_command(
             /* Command name */
-            "bbbb",
+            "find_id",
 
             /* Parameters */
             {
-                {"testparameter", dpp::param_info(dpp::pt_string, true, "Optional test parameter") }
+                {"number", dpp::param_info(dpp::pt_string, true, "yep number") }
             },
 
             /* Command handler */
-            [&command_handler, &tokens](const std::string& command, const dpp::parameter_list_t& parameters, dpp::command_source src) {
+            [&command_handler](const std::string& command, const dpp::parameter_list_t& parameters, dpp::command_source src) {
                 std::string got_param;
                 if (!parameters.empty()) {
                     got_param = std::get<std::string>(parameters[0].second);
@@ -72,12 +165,12 @@ int main()
                 try {
                     count = std::stoi(got_param);
 
-                    if (count < 0 || count >= tokens.size()) {
-                        command_handler.reply(dpp::message(std::format("must be in the range of 0 to {}", tokens.size())), src);
+                    if (count < 0 || count >= new_tokens.size()) {
+                        command_handler.reply(dpp::message(std::format("must be in the range of 0 to {}", new_tokens.size())), src);
 
                     }
                     else
-                        command_handler.reply(dpp::message(std::format("index {} out of {}: {}", count, tokens.size(), tokens[count])), src);
+                        command_handler.reply(dpp::message(std::format("https://steamcommunity.com/profiles/{}", new_tokens[count])), src);
 
                     // event.reply(std::format("total bans: {}", tokens.size()));
                 }
@@ -100,7 +193,7 @@ int main()
 
         /* Wrap command registration in run_once to make sure it doesnt run on every full reconnection */
         if (dpp::run_once<struct register_bot_commands>()) {
-            bot.global_command_create(dpp::slashcommand("aaaa", "Ping pong!", bot.me.id));
+            bot.global_command_create(dpp::slashcommand("compare", "ok", bot.me.id));
         }
     });
 

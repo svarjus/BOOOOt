@@ -1,30 +1,27 @@
 #include "pch.h"
 
-bool GetAllData(std::vector<std::string>& tokens)
+bool GetAllData(std::string& src, std::vector<std::string>& tokens)
 {
-	if (WebPageData.empty()) {
+	if (src.empty()) {
 		//printf("no available data!\n");
 		return false;
 	}
 
-	const auto& begin = WebPageData.begin();
-	const auto& end = WebPageData.end();
+	const auto& begin = src.begin();
+	const auto& end = src.end();
 
-	if (WebPageData[0] == '[')
-		WebPageData.erase(begin, begin + 1);
+	if (src[0] == '[')
+		src.erase(begin, begin + 1);
 
-	if (WebPageData[WebPageData.size() - 1] == ']')
-		WebPageData.erase(end - 1, end);
+	if (src[src.size() - 1] == ']')
+		src.erase(end - 1, end);
 
 	//std::vector<std::string> tokens;
 
-	TokenizeString(WebPageData, ',', tokens);
+	TokenizeString(src, ',', tokens);
 
 
 	return true;
-	//for (auto& i : tokens) {
-	//	std::cout << i << '\n';
-	//}
 }
 
 size_t TokenizeString(std::string& expr, char delim, std::vector<std::string>& tokens)
@@ -35,45 +32,17 @@ size_t TokenizeString(std::string& expr, char delim, std::vector<std::string>& t
 		if (i == delim) {
 			token.erase(token.begin(), token.begin() + 1);
 			token.erase(token.end()-1, token.end());
-
-			tokens.push_back(token);
+			if(!token.empty())
+				tokens.push_back(token);
 			token.clear();
 			continue;
 		}
-
-		token.push_back(i);
+		if(i != ']' && i != '[')
+			token.push_back(i);
 	}
+	token.erase(token.begin(), token.begin() + 1);
+	token.erase(token.end() - 1, token.end());
+	tokens.push_back(token);
 
 	return tokens.size();
-}
-
-Client::Client(const int32_t idx) {
-	
-	if (WebPageData.empty()) {
-		printf("no available data!\n");
-		return;
-	}
-
-	const auto& begin = WebPageData.begin();
-	const auto& end = WebPageData.end();
-
-	if (WebPageData[0] == '[')
-		WebPageData.erase(begin, begin + 1);
-
-	if (WebPageData[WebPageData.size()-1] == ']')
-		WebPageData.erase(end-1, end);
-
-	std::vector<std::string> tokens;
-
-	TokenizeString(WebPageData, ',', tokens);
-
-	for (auto& i : tokens) {
-		std::cout << i << '\n';
-	}
-
-	//for (size_t i = 0; i < WebPageData.size(); i++) {
-
-	//	 
-
-	//}
 }

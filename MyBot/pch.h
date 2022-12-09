@@ -8,6 +8,7 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <thread>
 
 #define CURL_STATICLIB
 #include <curl\curl.h>

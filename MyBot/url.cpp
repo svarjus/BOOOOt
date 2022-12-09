@@ -16,7 +16,7 @@ std::string FetchURLData(const char* url)
     curl_handle = curl_easy_init();
 
     /* specify URL to get */
-    curl_easy_setopt(curl_handle, CURLOPT_URL, "http://16.170.254.129/bans.json");
+    curl_easy_setopt(curl_handle, CURLOPT_URL, url);
 
     /* send all data to this function  */
     curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);

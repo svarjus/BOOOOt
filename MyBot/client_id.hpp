@@ -5,10 +5,10 @@
 
 #include "pch.h"
 
-inline std::string WebPageData;
 
 size_t TokenizeString(std::string& expr, char delim, std::vector<std::string>& tokens);
-bool GetAllData(std::vector<std::string>& tokens);
+bool GetAllData(std::string& src, std::vector<std::string>& tokens);
+
 struct client_t
 {
 	std::string id;
