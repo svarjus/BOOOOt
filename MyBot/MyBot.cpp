@@ -19,12 +19,14 @@ dpp::cluster bot(BOT_TOKEN);
 
 inline std::string old_data, new_data;
 
-
 void CheckSimilarity()
 {   
     std::string uhhhhhh;
 
     bool first_time = true;
+    uint32_t times_fetched = 1;
+    size_t total_bans;
+    SetConsoleTitleA("AAAAAAAAAAAAAAAA");
 
     while (true) {
         
@@ -41,7 +43,8 @@ void CheckSimilarity()
         old_tokens.resize(1);
 
         new_data = FetchURLData("http://www.api.rugbug.net/bans");
-
+        bot.set_presence(dpp::presence(dpp::ps_online, dpp::at_game, std::format("times fetched: {} | total bans: {}", times_fetched, total_bans)));
+        times_fetched++;
 
         if (first_time) {
             old_data = new_data;
@@ -92,7 +95,7 @@ void CheckSimilarity()
 
         missing = std::format("\ntotal missing ids: {}\n", missing_ids.size()-1);
         old_data = new_data;
-
+        total_bans = new_tokens.size();
 
         Sleep(60000);
     }
@@ -166,7 +169,7 @@ int main()
                     count = std::stoi(got_param);
 
                     if (count < 0 || count >= new_tokens.size()) {
-                        command_handler.reply(dpp::message(std::format("must be in the range of 0 to {}", new_tokens.size())), src);
+                        command_handler.reply(dpp::message(std::format("must be in the range of 0 to {}", new_tokens.size()-1)), src);
 
                     }
                     else
